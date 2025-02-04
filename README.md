@@ -29,8 +29,7 @@ CS2 Round Handicap Edge Calculator is a sports betting project aimed at analyzin
 #### **Setup Instructions**
 1. Clone the repository:  
    ```bash
-   git clone https://github.com/yourusername/CS2 Round Handicap Edge Calculator.git
-   cd CS2 Round Handicap Edge Calculator
+   git clone https://github.com/hitansh1299/CS2-Round-Handicap-Edge-Calculator.git
    ```
 2. Install dependencies:  
    ```bash
