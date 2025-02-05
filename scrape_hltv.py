@@ -12,7 +12,7 @@ import os
 
 BASE_HLTV_URL = 'https://www.hltv.org'
 
-def __get_hltv_page__(url):
+def __get_hltv_page__(url:str, max_retries:int = 3):
     scraper = cloudscraper.create_scraper(
         browser={
             "browser": "chrome",
@@ -20,12 +20,12 @@ def __get_hltv_page__(url):
         },
     )
     retries = 0
-    while (retries <= 3):
+    while (retries <= max_retries):
         retries += 1
         print(f'try {retries} | SCRAPING: ',url)
         req = scraper.get(url)
         print(req)
-        if req.status_code == 403:
+        if req.status_code != 200:
             time.sleep(3)
             continue
         return req.content
