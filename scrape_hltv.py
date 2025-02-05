@@ -13,7 +13,7 @@ import logging
 import logging_utils
 
 BASE_HLTV_URL = 'https://www.hltv.org'
-MAX_RETRIES = 5
+MAX_RETRIES = 10
 logger = logging.getLogger(__name__)
 class MaxRetriesReachedException(Exception):
     pass
@@ -39,8 +39,9 @@ def __get_hltv_page__(url:str):
             if retries > MAX_RETRIES:
                 break
     
+            logger.info(f'BACKING OFF FOR {sleeptime} seconds')
             time.sleep(sleeptime)
-            sleeptime *= sleeptime
+            sleeptime *= 2
             continue
         sleeptime = 2
         return req.content
@@ -114,11 +115,12 @@ def download_demo(demo_link: str, force_overwrite: bool=False):
         with scraper.get(url, stream=True) as r:
             logger.debug(f"Received status code: {r.status_code}")
             if r.status_code != 200:
+                logger.info(f'BACKING OFF FOR {sleeptime} second')
                 time.sleep(sleeptime)
-                sleeptime *= sleeptime
+                sleeptime *= 2
                 continue
             # r.raise_for_status()
-            pbar = tqdm(unit="bytes", total=int( r.headers['Content-Length']))
+            pbar = tqdm(unit="bytes", total=int( r.headers['Content-Length']),)
             logger.info(f"Downloading demo to {local_filename}")
             with open(local_filename, 'wb') as f:
                 for chunk in tqdm(r.iter_content(chunk_size=8192)): 
@@ -128,8 +130,12 @@ def download_demo(demo_link: str, force_overwrite: bool=False):
                     pbar.update(len(chunk))
                     f.write(chunk)
 
-    logger.info(f"Demo downloaded successfully: {local_filename}")
-    return local_filename
+        logger.info(f"Demo downloaded successfully: {local_filename}")
+        return local_filename
+    logger.error(f'Max retries reached. Failed to download Demo for {url}')
+    return None
+
+
 
 def download_match(matchpage_url: str):
     demo_links = get_demo_links_from_matchpage(matchpage_url)
@@ -158,7 +164,7 @@ n: number of matches to download, keep at 0 for all matches
 '''
 def save_event(event_id, n=1):
     matches = get_matches_from_event(event_id=event_id)
-    matches = matches[0:(len(matches) if n == 0 else n)] #TODO change from 1 to 0 later 
+    matches = matches[17:(len(matches) if n == 0 else n)] #TODO change from 1 to 0 later 
     logger.info(f"Processing {len(matches)} match(es) for event {event_id}")
     for match in matches:
         matchfile = download_match(match)
