@@ -164,7 +164,7 @@ n: number of matches to download, keep at 0 for all matches
 '''
 def save_event(event_id, n=1):
     matches = get_matches_from_event(event_id=event_id)
-    matches = matches[17:(len(matches) if n == 0 else n)] #TODO change from 1 to 0 later 
+    matches = matches[18:(len(matches) if n == 0 else n)] #TODO change from 1 to 0 later 
     logger.info(f"Processing {len(matches)} match(es) for event {event_id}")
     for match in matches:
         matchfile = download_match(match)

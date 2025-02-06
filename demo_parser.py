@@ -67,11 +67,24 @@ def add_map_to_db(df: pd.DataFrame, con: str = None, table:str = None):
 def format_gamedata(df: pd.DataFrame | str):
     if type(df) is str:
         df = pd.read_csv(df)
-    suffix_list = [f"player_{i}" for i in range(1,11)]
+
+    #Sort by tick, team name and player name to ensure consistency of column placements
+    #This ensures, player 1-5 are from one team and players 5-10 are from other team
+    df = df.sort_values(by=['tick','team_clan_name','name'])
+
+
+    #Replace player names such as ZywOo, s1mple to player1, player2 for consistency in col headers
+    suffix_list = [f"player_{i}" for i in range(0,10)]
     df['player_name'] = df['name'].replace(dict(zip(list(df['name'].unique()),suffix_list)))
+
     # df = df[['name','balance','kills_total','team_clan_name']]
     df = df.pivot(index=['tick','total_rounds_played'], columns=['player_name'])
+
     df.columns = ['_'.join(col) for col in df.columns.values]
+    logger.debug('Calculating Round Handicap')
+    df['round_handicap'] = df.loc[df.last_valid_index()]['team_rounds_total_player_0'] - \
+                            df.loc[df.last_valid_index()]['team_rounds_total_player_9']
+
     return df
 
 import glob
@@ -89,7 +102,7 @@ if __name__ == '__main__':
     print('Parsing CSGO demos')
     # parse_demo('demos\\iem-katowice-2025-play-in-big-vs-heroic-bo3-KvlmFiXJQmR2f_ILlW2f-R\\big-vs-heroic-m1-nuke.dem',
     #            save_csv=True,
-    #            table='match_data',
-    #            db = r'data\master_database.db'
+    #            table='match_data'
+    #         #    db = r'data\master_database.db'
     #            )
     parse_all_demos('demos')
