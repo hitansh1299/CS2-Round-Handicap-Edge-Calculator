@@ -176,3 +176,4 @@ cython_debug/
 /demos/*
 scratch.ipynb
 lightning_logs/
+/temp/*
