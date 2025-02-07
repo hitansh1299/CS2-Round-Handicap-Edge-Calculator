@@ -50,7 +50,7 @@ CS2 Round Handicap Edge Calculator is a sports betting project aimed at analyzin
 
 #### **Roadmap**
 - ✅ **Scraping HLTV match data**  
-- 🚧 **Extracting demo statistics**  
+- ✅ **Extracting demo statistics**  
 - 🚧 **Building predictive models for round handicap probabilities**  
 - 🚧 **Developing a user-friendly betting dashboard**  
 
