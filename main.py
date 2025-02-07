@@ -5,11 +5,11 @@ from models import lightning_baseline
 from torch import nn, utils
 
 baseline_model = nn.Sequential(
-    nn.Linear(105, 64),
+    nn.Linear(83, 32),
     nn.ReLU(),
-    nn.Linear(64,32),
+    nn.Linear(32,16),
     nn.ReLU(),
-    nn.Linear(32,1)
+    nn.Linear(16,1)
 )
 
 model = lightning_baseline.BaselineModel(baseline_model)

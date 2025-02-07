@@ -1,20 +1,14 @@
-import pandas as pd
-from torch.utils.data import random_split, DataLoader
-import torch
-import sqlite3
+from torch.utils.data import random_split, DataLoader, Dataset
 import lightning as L
+from datasets import *
+
 
 
 class BaselineTminus1RoundDataModule(L.LightningDataModule):
     def __init__(self, db: str, table: str):
         super().__init__()
-        self.db = db
-        self.table = table
-        self.db_connection = sqlite3.connect(self.db)
-        self.df = pd.read_sql(f'SELECT * FROM {self.table}', con=self.db_connection)
-        self.df = self.df.reset_index()
-        self.df = self.df.select_dtypes(include='number')
-        self.train, self.val, self.test = random_split(self.df, [0.8,0.1,0.1], generator=torch.Generator().manual_seed(42))
+        dataset = BaselineDataset(db, table)
+        self.train, self.test = random_split(dataset=dataset, lengths=[0.9,0.1])
         self.BATCH_SIZE = 32
 
     def train_dataloader(self):
@@ -27,4 +21,6 @@ class BaselineTminus1RoundDataModule(L.LightningDataModule):
         return DataLoader(self.val, batch_size=self.BATCH_SIZE, shuffle=True)
 
 if __name__ == "__main__":
-    BaselineTminus1RoundDataModule(db = "data\\master_database.db", table="match_data")
+    # BaselineTminus1RoundDataModule(db = "data\\master_database.db", table="match_data")
+    dataset = BaselineDataset(db = "data\\master_database.db", table="match_data")
+    # for i in  
