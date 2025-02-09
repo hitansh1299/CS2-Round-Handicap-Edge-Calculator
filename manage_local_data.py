@@ -17,6 +17,11 @@ def move_and_symlink_dem_files(source_folder, destination_folder):
         filename = filepath.split('\\')[-1]
         print(match_dir)
         print(filepath)
+
+        if os.path.islink(filepath):
+            print(f"Found symlink at {filepath}, skipping")
+            continue
+
         os.makedirs(os.path.join(destination_folder, match_dir), exist_ok=True)
         src_path = filepath
         dst_path = os.path.join(destination_folder, match_dir, filename)
@@ -32,12 +37,16 @@ def move_and_symlink_dem_files(source_folder, destination_folder):
             print(f"Created symlink: {src_path} -> {dst_path}")
         except OSError as e:
             print(f"Error creating symlink for {src_path}: {e}")
+            print(f'Found error, undoing move')
+            shutil.move(dst_path, src_path)
+            print(f"Moved: {dst_path} -> {src_path}")
+            exit()
 
 def move_rar_files(source_folder, destination_folder):
-    filename = filepath.split('\\')[-1]
-    src_path = filepath
-    dst_path = os.path.join(destination_folder, filename)
     for filepath in glob.glob(f'{source_folder}/*.rar', recursive=True):
+        filename = filepath.split('\\')[-1]
+        src_path = filepath
+        dst_path = os.path.join(destination_folder, filename)
         shutil.move(src_path, dst_path)
         print(f"Moved: {src_path} -> {dst_path}")
 
@@ -48,6 +57,7 @@ if __name__ == "__main__":
     source_folder = r"demos"
     destination_folder = r"D:\CS2_Demos"
 
-    move_and_symlink_dem_files(source_folder, destination_folder)
+    # move_and_symlink_dem_files(source_folder, destination_folder)
+    move_rar_files(source_folder=source_folder, destination_folder= destination_folder)
 
     # print()

@@ -204,5 +204,7 @@ def save_event(event_id, n=1):
 
 if __name__ == '__main__':
     # save_event(7557,0)
-    save_event(7524,0)
+    # save_event(7524,0)
+    #https://www.hltv.org/results?event=7436
+    save_event(7436,0)
     # __get_hltv_page__("https://www.hltv.org/events/8229/iem-katowice-2025-play-in")

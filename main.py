@@ -15,6 +15,7 @@ baseline_model = nn.Sequential(
 
 model = lightning_baseline.BaselineModel(baseline_model)
 dataset = datasets.BaselineDataset2('data\\master_database.db','match_data')
+
 datamodule = datamodules.BaselineDataModule(dataset)
 
 # early_stop_callback = EarlyStopping(monitor="validation_loss", min_delta=0.005, patience=3, verbose=False, mode="max")

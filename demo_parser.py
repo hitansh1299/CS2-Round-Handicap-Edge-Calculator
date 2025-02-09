@@ -93,20 +93,34 @@ def format_gamedata(df: pd.DataFrame | str):
     return df
 
 import glob
-def parse_all_demos(demo_dir: str, clear_exisiting_data = True):
+def parse_all_demos(demo_dir: str, force_all_overwrite: bool = False):
     db = r'data\master_database.db'
     table='match_data'
 
-    if clear_exisiting_data:
+    if force_all_overwrite:
         logger.warning(f'Clearing all data from database {db}')
         sqlite3.connect(db).execute(f'DELETE FROM {table}').close()
+    
+    cursor = sqlite3.connect(db).execute(f'SELECT DISTINCT demo_id from {table}')
+    parsed_demos = [demo[0] for demo in cursor.fetchall()]
+    cursor.close()
+       
 
     demos = glob.glob(f'{demo_dir}/*/*.dem', recursive=True)
     for demo in demos:
-        parse_demo(demo,
-                    save_csv=True,
-                    table=table,
-                    db = db)
+        if '/'.join(demo.split('\\')[-2:]) in parsed_demos:
+            logger.info(f'Skipping demo {demo}. Found entry in db')
+            continue
+        
+        try:
+            parse_demo(demo,
+                        save_csv=True,
+                        table=table,
+                        db = db)
+        except Exception as e:
+            logger.error(e)
+            logger.error('DEMO FAILED TO BE PARSED. SEE LOGS FOR MORE INFO')
+        
     # print(demos)
 
 
