@@ -46,7 +46,7 @@ class BaselineDataset2(Dataset):
         steam_id_cols = df.columns[df.columns.str.startswith('steamid')]
         
         df = df.drop(columns=steam_id_cols)
-        
+        df = df.drop(columns='tick')
         team_clan_cols = df.columns[df.columns.str.startswith('team_clan')]
         
         df[team_clan_cols] = OrdinalEncoder().fit_transform(df[team_clan_cols].values)

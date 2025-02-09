@@ -76,6 +76,11 @@ def format_gamedata(df: pd.DataFrame | str):
     #Replace player names such as ZywOo, s1mple to player1, player2 for consistency in col headers
     suffix_list = [f"player_{i}" for i in range(0,10)]
     df['player_name'] = df['name'].replace(dict(zip(list(df['name'].unique()),suffix_list)))
+    
+    #Ensure no other player is present. Why this is possible is anyone's guess. (WTF, valve?)
+    # Check demos\blast-premier-world-final-2024-astralis-vs-spirit-bo3-uYnrN2BZo4_ojsgaPj32qL\astralis-vs-spirit-m3-ancient.dem,
+    # If you think this is untrue
+    df = df[df['player_name'].isin(suffix_list)]
 
     # df = df[['name','balance','kills_total','team_clan_name']]
     df = df.pivot(index=['tick','total_rounds_played'], columns=['player_name'])
@@ -88,13 +93,20 @@ def format_gamedata(df: pd.DataFrame | str):
     return df
 
 import glob
-def parse_all_demos(demo_dir: str):
+def parse_all_demos(demo_dir: str, clear_exisiting_data = True):
+    db = r'data\master_database.db'
+    table='match_data'
+
+    if clear_exisiting_data:
+        logger.warning(f'Clearing all data from database {db}')
+        sqlite3.connect(db).execute(f'DELETE FROM {table}').close()
+
     demos = glob.glob(f'{demo_dir}/*/*.dem', recursive=True)
     for demo in demos:
         parse_demo(demo,
                     save_csv=True,
-                    table='match_data',
-                    db = r'data\master_database.db')
+                    table=table,
+                    db = db)
     # print(demos)
 
 

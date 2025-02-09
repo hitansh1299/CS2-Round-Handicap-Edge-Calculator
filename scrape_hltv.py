@@ -11,6 +11,9 @@ import time
 import os
 import logging
 import logging_utils
+import json
+from pathlib import Path
+import random
 
 BASE_HLTV_URL = 'https://www.hltv.org'
 MAX_RETRIES = 10
@@ -41,7 +44,7 @@ def __get_hltv_page__(url:str):
     
             logger.info(f'BACKING OFF FOR {sleeptime} seconds')
             time.sleep(sleeptime)
-            sleeptime *= 2
+            sleeptime *= random.randint(2,5)
             continue
         sleeptime = 2
         return req.content
@@ -52,7 +55,15 @@ def __get_hltv_page__(url:str):
 
 
 
-def get_matches_from_event(event_id: int):
+def get_matches_from_event(event_id: int, use_cached: bool= True):
+    '''
+    Cache response to prevent regetting in case of failure
+    '''
+    if os.path.isfile(f'/temp/{event_id}.json'):
+        logger.info(f'Found a cached file for event {event_id}: /temp/{event_id}.json. Using the cached version.')
+        results = json.load(open("/temp/{event_id}.json", 'rb'))
+        return results
+    
     url = f'{BASE_HLTV_URL}/results?event={event_id}'
     html = __get_hltv_page__(url)
     soup = BeautifulSoup(html, 'html.parser')
@@ -65,6 +76,9 @@ def get_matches_from_event(event_id: int):
         href = link.get('href')
         results.append(href)
     logger.info(f"Found {len(results)} matches in event {event_id}")
+
+    json.dump(results, open(f"temp/{event_id}.json", "w"))
+    
     return results
 
 def get_demo_links_from_matchpage(match_page: str):
@@ -117,7 +131,7 @@ def download_demo(demo_link: str, force_overwrite: bool=False):
             if r.status_code != 200:
                 logger.info(f'BACKING OFF FOR {sleeptime} second')
                 time.sleep(sleeptime)
-                sleeptime *= 2
+                sleeptime *= random.randint(2,5)
                 continue
             # r.raise_for_status()
             pbar = tqdm(unit="bytes", total=int( r.headers['Content-Length']),)
@@ -155,7 +169,14 @@ def unzip_demo(demofile: str, force_overwrite: bool=False):
     
 
     logger.info(f"Unzipping demo file: {demofile}")
-    patoolib.extract_archive(demofile, outdir = demofile.rsplit('.',1)[0])
+    try:
+        patoolib.extract_archive(demofile, outdir = demofile.rsplit('.',1)[0])
+    except:
+        logger.error(f'Error while unzipping file {demofile}')
+    else:
+        source = Path(demofile)
+        destination = Path(r'D:\CS2_Demos')
+        source.replace(destination)
     logger.info(f"Unzipped demo file to {demofile.rsplit('.', 1)[0]}")
 
 '''
@@ -164,12 +185,24 @@ n: number of matches to download, keep at 0 for all matches
 '''
 def save_event(event_id, n=1):
     matches = get_matches_from_event(event_id=event_id)
-    matches = matches[18:(len(matches) if n == 0 else n)] #TODO change from 1 to 0 later 
+    matches = matches[0:(len(matches) if n == 0 else n)] #TODO change from 1 to 0 later 
     logger.info(f"Processing {len(matches)} match(es) for event {event_id}")
-    for match in matches:
+
+    def __save_demo__(match):
         matchfile = download_match(match)
         unzip_demo(matchfile)
+    
+    threads = []
+    for match in matches:
+        t = threading.Thread(target=__save_demo__, args=(match,), name=f"Worker-{match}")
+        threads.append(t)
+        t.start()
+    
+    for t in threads:
+        t.join()
+        logger.info(f'Thread {t.name} joined back')
 
 if __name__ == '__main__':
-    save_event(8229,0)
+    # save_event(7557,0)
+    save_event(7524,0)
     # __get_hltv_page__("https://www.hltv.org/events/8229/iem-katowice-2025-play-in")
