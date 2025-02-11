@@ -1,27 +1,28 @@
 import pandas as pd
 import lightning as L
-from data import datamodules, datasets
-from models import lightning_baseline
+from data import datamodules, classification_datasets, regression_datasets
+from models import classification_models
+from models import regression_models
 from torch import nn, utils
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
-baseline_model = nn.Sequential(
-    nn.Linear(81, 32),
-    nn.ReLU(),
-    nn.Linear(32,16),
-    nn.ReLU(),
-    nn.Linear(16,1)
-)
+# dataset = datasets.ClassificationDataset('data\\master_database.db','match_data')
+dataset = regression_datasets.BaselineRegressionOverfitDataset('data\\master_database.db','match_data')
+sample = dataset[0:2]
+input_layer_size = len(sample[0])
+output_layer_size = len(sample[1])
 
-model = lightning_baseline.BaselineModel(baseline_model)
-dataset = datasets.BaselineDataset2('data\\master_database.db','match_data')
+baseline_model = nn.Sequential(
+    nn.Linear(input_layer_size, 4),
+    # nn.ReLU(),
+    # nn.Linear(4, 2),
+    nn.ReLU(),
+    nn.Linear(4,output_layer_size)
+)
+model = regression_models.BaselineRegressionModel(baseline_model)
 
 datamodule = datamodules.BaselineDataModule(dataset)
 
-# early_stop_callback = EarlyStopping(monitor="validation_loss", min_delta=0.005, patience=3, verbose=False, mode="max")
-
-
-train_loader = utils.data.DataLoader(datamodule)
-trainer = L.Trainer(limit_train_batches=100, log_every_n_steps=1, max_epochs=20)
+trainer = L.Trainer(log_every_n_steps=20, max_epochs=100)
 trainer.fit(model=model, datamodule=datamodule)
 trainer.test(model, dataloaders=datamodule)

@@ -14,6 +14,7 @@ import logging_utils
 import json
 from pathlib import Path
 import random
+import shutil
 
 BASE_HLTV_URL = 'https://www.hltv.org'
 MAX_RETRIES = 10
@@ -175,36 +176,45 @@ def unzip_demo(demofile: str, force_overwrite: bool=False):
         logger.error(f'Error while unzipping file {demofile}')
     else:
         source = Path(demofile)
-        destination = Path(r'D:\CS2_Demos')
-        source.replace(destination)
-    logger.info(f"Unzipped demo file to {demofile.rsplit('.', 1)[0]}")
+        destination = Path(r'D:/CS2_Demos/')
+        filename = demofile.split('\\')[-1]
+        src_path = demofile
+        dst_path = os.path.join(destination, filename)
+        shutil.move(src_path, dst_path)
+        print(f"Moved: {src_path} -> {dst_path}")
+        logger.info(f"Unzipped demo file to {demofile.rsplit('.', 1)[0]}")
 
 '''
 event_id: event_id of the HLTV event eg: https://www.hltv.org/events/8229/iem-katowice-2025-play-in, 8229 is the event_id
 n: number of matches to download, keep at 0 for all matches
 '''
-def save_event(event_id, n=1):
+def save_event(event_id, n=1, num_workers: int = 16):
     matches = get_matches_from_event(event_id=event_id)
     matches = matches[0:(len(matches) if n == 0 else n)] #TODO change from 1 to 0 later 
+    batches = [matches[i:i+num_workers] for i in range(0, len(matches), num_workers)]
+    # print(batches)
+    # exit()
     logger.info(f"Processing {len(matches)} match(es) for event {event_id}")
 
     def __save_demo__(match):
         matchfile = download_match(match)
         unzip_demo(matchfile)
     
-    threads = []
-    for match in matches:
-        t = threading.Thread(target=__save_demo__, args=(match,), name=f"Worker-{match}")
-        threads.append(t)
-        t.start()
-    
-    for t in threads:
-        t.join()
-        logger.info(f'Thread {t.name} joined back')
+    for idx, batch in enumerate(batches):
+        logger.info(f'Completing batch {idx} of {len(batches)}')
+        threads = []
+        for match in batch:
+            t = threading.Thread(target=__save_demo__, args=(match,), name=f"Worker-{match}")
+            threads.append(t)
+            t.start()
+        
+        for t in threads:
+            t.join()
+            logger.info(f'Thread {t.name} joined back')
 
 if __name__ == '__main__':
     # save_event(7557,0)
     # save_event(7524,0)
     #https://www.hltv.org/results?event=7436
-    save_event(7436,0)
+    save_event(7441,0)
     # __get_hltv_page__("https://www.hltv.org/events/8229/iem-katowice-2025-play-in")
