@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 import sqlite3
 import pandas as pd
 import torch
-class BaselineDataset(Dataset):
+class BasicDataset(Dataset):
     '''
     Baseline dataset, only loads the db into a df and provides methods to get length of the df
     '''

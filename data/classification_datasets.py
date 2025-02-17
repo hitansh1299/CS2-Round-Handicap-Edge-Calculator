@@ -1,10 +1,10 @@
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, OneHotEncoder
 import torch
 import pandas as pd
-from data.datasets import BaselineDataset
+from data.datasets import BasicDataset
 
 
-class ClassificationDataset(BaselineDataset):
+class ClassificationDataset(BasicDataset):
     def __init__(self, db: str, table:str):
         super().__init__(db,table)
         self.df = self.prepare_data(self.df)

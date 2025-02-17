@@ -1,8 +1,8 @@
 import pandas as pd
-from data.datasets import BaselineDataset
+from data.datasets import BasicDataset
 from sklearn.preprocessing import OrdinalEncoder
 
-class RegressionDataset(BaselineDataset):
+class RegressionDataset(BasicDataset):
     def __init__(self, db: str, table:str):
         super().__init__(db,table)
         self.df = self.prepare_data(self.df)
@@ -21,7 +21,7 @@ class RegressionDataset(BaselineDataset):
         return df
 
     
-class BaselineRegressionOverfitDataset(BaselineDataset):
+class BaselineRegressionOverfitDataset(BasicDataset):
     '''
     Keep only rounds where the rounds played is max rounds. 
     '''
