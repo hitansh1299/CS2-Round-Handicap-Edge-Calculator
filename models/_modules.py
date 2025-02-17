@@ -14,6 +14,9 @@ class BasicModule(L.LightningModule):
             h_params = {'model_name': self.model_name}
             h_params['model'] = json_to_torch.convert_model_to_json(self.model)
             h_params['optimizer'] = str(self.optimizers())
+            h_params['dataset'] = str(self.trainer.datamodule.dataset.__class__)
+            h_params['columns'] = self.trainer.datamodule.dataset.df.columns.to_list()
+            h_params['sample_data'] = self.trainer.datamodule.dataset.df.head(10).to_dict(orient='dict')
             json.dump(h_params, fp=f, indent=4) #Save model to json
     
     def training_step(self, batch):

@@ -10,7 +10,7 @@ class BasicDataset(Dataset):
         self.db = db
         self.table = table
         self.db_connection = sqlite3.connect(self.db)
-        self.df = pd.read_sql(f'SELECT * FROM {self.table}', con=self.db_connection)
+        self.df: pd.DataFrame = pd.read_sql(f'SELECT * FROM {self.table}', con=self.db_connection)
         
     def __len__(self):
         return len(self.df)

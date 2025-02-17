@@ -4,6 +4,7 @@ import lightning as L
 class BaselineDataModule(L.LightningDataModule):
     def __init__(self, dataset: Dataset):
         super().__init__()
+        self.dataset = dataset
         self.train, self.val, self.test = random_split(dataset=dataset, lengths=[0.8,0.1,0.1])
         self.BATCH_SIZE = 32
 
