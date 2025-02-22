@@ -7,7 +7,7 @@ from data.datasets import BasicDataset
 class ClassificationDataset(BasicDataset):
     def __init__(self, db: str, table:str):
         super().__init__(db,table)
-        self.df = self.prepare_data(self.df)
+        
     
     def _one_hot_encode_target(self, df: pd.DataFrame):
         rounds_played = list(range(-13,14))
@@ -60,6 +60,30 @@ class BaselineClassificationOverfitDataset(ClassificationDataset):
         # df = df[df['rounds_played']]
         return df
     
+
+class TMinusTwoDataset(ClassificationDataset):
+    '''
+    Keep only rounds where the rounds played is max rounds. 
+    '''
+    def __init__(self, db, table):
+        super().__init__(db, table)
+    
+    def _shift_target(self, df: pd.DataFrame):
+        df['round_handicap'] = df['round_handicap'] + 13 #Minimum Round handicap
+        return df
+
+    def prepare_data(self, df):
+        df = df.loc[df.groupby("demo_id")["total_rounds_played"].idxmax()].reset_index(drop=True)
+        # df = df[['team_rounds_total_player_1','team_rounds_total_player_9','round_handicap']]
+        # df = super().prepare_data(df)
+        df = self._one_hot_encode_target(df)
+        # df = self._shift_target(df)
+
+        df.to_csv('temp/temp_data.csv', index=False)
+        # df = df[df['rounds_played']]
+        return df
+    
+
 if __name__ == "__main__":
     # BaselineTminus1RoundDataModule(db = "data\\master_database.db", table="match_data")
     dataset = BaselineClassificationOverfitDataset(db = "data\\master_database.db", table="match_data")

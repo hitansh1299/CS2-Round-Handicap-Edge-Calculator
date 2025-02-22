@@ -6,7 +6,7 @@ from models._modules import BasicModule
 class BaselineRegressionModule(BasicModule):
     def __init__(self, model: str | nn.Module, model_name: str = 'Generic_Regression_Model'):
         super(BaselineRegressionModule, self).__init__(model, model_name)
-        self.loss = nn.functional.mse_loss
+        self.loss = nn.functional.mse_loss + nn.functional.l1_loss
 
     def plot_regression(self, y_pred, y_true):
         fig, ax = plt.subplots(figsize=(16, 16))
@@ -30,3 +30,16 @@ class BaselineRegressionModule(BasicModule):
             self.plot_regression(y_pred=y_pred, y_true=y)
             print('Loss: ',loss)
     
+class L1RegularizationRegressor(BaselineRegressionModule):
+    def __init__(self, model: str | nn.Module, model_name: str = 'Generic_Regression_Model'):
+        super(BaselineRegressionModule, self).__init__(model, model_name)
+        self.lambda_reg = 1e-3
+        self.loss = nn.functional.mse_loss
+    
+    def __common_forward_step__(self, batch):
+        _loss, x_hat = super().__common_forward_step__(batch)
+        _loss += (self.lambda_reg * sum(p.abs().sum() for p in self.model.parameters()))
+        return _loss, x_hat
+    
+    def test_step(self, batch, batch_idx):
+        return super().test_step(batch, batch_idx)

@@ -9,10 +9,10 @@ class BaselineDataModule(L.LightningDataModule):
         self.BATCH_SIZE = 32
 
     def train_dataloader(self):
-        return DataLoader(self.train, batch_size=self.BATCH_SIZE, shuffle=True)
+        return DataLoader(self.train, batch_size=self.BATCH_SIZE)
     
     def test_dataloader(self):
-        return DataLoader(self.test, batch_size=len(self.test), shuffle=False)
+        return DataLoader(self.test, batch_size=len(self.test))
 
     def val_dataloader(self):
-        return DataLoader(self.val, batch_size=self.BATCH_SIZE, shuffle=False)
+        return DataLoader(self.val, batch_size=self.BATCH_SIZE)

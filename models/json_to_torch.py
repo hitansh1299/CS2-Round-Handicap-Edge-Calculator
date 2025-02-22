@@ -28,8 +28,8 @@ def parse_layer(layer_def):
     - MaxPool2d
     (Add more as needed.)
     """
+    # print(layer_def)
     layer_type = layer_def["type"]
-    
     if layer_type == "Linear":
         # required fields: in_features, out_features
         return nn.Linear(
@@ -65,7 +65,7 @@ def parse_layer(layer_def):
     else:
         raise ValueError(f"Unsupported layer type: {layer_type}")
 
-def parse_model(model_definition: dict):
+def parse_model(model_definition: dict, input_dim:int = None, output_dim:int = None):
     """
     Given a dictionary describing an entire model,
     return a PyTorch nn.Sequential model.
@@ -83,9 +83,14 @@ def parse_model(model_definition: dict):
     raises 
     MalformedLayerException for errors in layer definition
     """
+    # print(input_dim, output_dim)
     layers = []
-    for i, layer_info in enumerate(model_definition["layers"]):
+    for idx, layer_info in enumerate(model_definition["layers"]):
         try:
+            if idx == 0:
+                layer_info['in_features'] = input_dim
+            if idx == len(model_definition['layers']) - 1:
+                layer_info['out_features'] = output_dim
             layer = parse_layer(layer_info)
         except KeyError:
             raise MalformedLayerException(f'Error while parsing layer {layer_info}. Please check definition')
@@ -168,9 +173,9 @@ def write_model(model_name, model, filename:str = 'models.json'):
     with open(filename, "w") as f:
         json.dump(data, f, indent=4)
 
-def get_model(model_name: str, filename:str = 'models.json'):
+def get_model(model_name: str, models_file:str = 'models.json', input_dim:int = None, output_dim:int = None):
     # Read JSON from file
-    json_file = filename  # Replace with your actual filename
+    json_file = models_file  # Replace with your actual filename
     with open(json_file, "r") as f:
         data = json.load(f)
     
@@ -178,14 +183,16 @@ def get_model(model_name: str, filename:str = 'models.json'):
     try:
         mdef = data[model_name]
     except KeyError as e:
-        logger.info(f'Model definition for {model_name} Not found. Please check {filename}')
+        logger.info(f'Model definition for {model_name} Not found. Please check {models_file}')
         raise e
     else: 
-        return parse_model(mdef)
+        return parse_model(mdef, 
+                           input_dim=input_dim, 
+                           output_dim=output_dim)
 
 
 if __name__ == "__main__":
-    model = get_model("SimpleModel", filename='models/models.json')
+    model = get_model("SimpleModel", models_file='models/models.json', input_dim=42, output_dim=2)
     print(model)
 
     write_model(model_name='SimpleModel2', model=model, filename='models/models.json')

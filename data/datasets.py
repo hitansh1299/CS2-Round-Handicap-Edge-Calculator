@@ -11,6 +11,11 @@ class BasicDataset(Dataset):
         self.table = table
         self.db_connection = sqlite3.connect(self.db)
         self.df: pd.DataFrame = pd.read_sql(f'SELECT * FROM {self.table}', con=self.db_connection)
+        self.df = self.prepare_data(self.df)
+        self.n_target = len(self.df.columns[self.df.columns.str.startswith('round_handicap')]) #TODO: Very shoddy solution, please fix to something more stable
+        self.n_features = self.df.shape[1] - self.n_target #TODO: Again a very shabby solution, please create something more concrete
+        self.n_rows = self.df.shape[0]
+
         
     def __len__(self):
         return len(self.df)
